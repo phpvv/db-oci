@@ -8,17 +8,14 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VV\Db\Oracle;
+namespace VV\Db\Oci;
 
-use VV\Db\Driver\Driver as DriverAlias;
-use VV\Db\Driver\QueryStringifiers;
-use VV\Db\Exceptions\ConnectionError as ConnError;
-use VV\Db\Sql;
+use VV\Db\Exceptions\ConnectionError;
 
 /**
- * Class Oracle
+ * Class Driver
  *
- * @package VV\Db\Driver
+ * @package VV\Db\Oci
  */
 class Driver implements \VV\Db\Driver\Driver {
 
@@ -31,7 +28,7 @@ class Driver implements \VV\Db\Driver\Driver {
     public function connect(string $host, string $user, string $passwd, ?string $scheme, ?string $charset): Connection {
 
         $conn = @oci_new_connect($u = $user, $passwd, $host, $charset ?: '');
-        if (!$conn) throw new ConnError(null, null, $this->ociError());
+        if (!$conn) throw new ConnectionError(null, null, $this->ociError());
 
         $sessionParams = $this->sessionParams + [
                 'nls_date_format' => '\'YYYY-MM-DD HH24:MI:SS\'',
@@ -48,45 +45,20 @@ class Driver implements \VV\Db\Driver\Driver {
             self::ociExecute($stmt);
         }
         $res = oci_commit($conn);
-        if (!$res) throw new ConnError('Can\'t commit session settings');
+        if (!$res) throw new ConnectionError('Can\'t commit session settings');
 
         return new Connection($conn);
     }
 
     /**
-     * @param Sql\SelectQuery $query
-     *
-     * @return QueryStringifiers\SelectStringifier
+     * @return string
      */
-    public function createSelectStringifier(Sql\SelectQuery $query): QueryStringifiers\SelectStringifier {
-        return new SqlStringifier\SelectStringifier($query, $this);
+    public function dbms(): string {
+        return self::DBMS_ORACLE;
     }
 
-    /**
-     * @param Sql\InsertQuery $query
-     *
-     * @return QueryStringifiers\InsertStringifier
-     */
-    public function createInsertStringifier(Sql\InsertQuery $query): QueryStringifiers\InsertStringifier {
-        return new SqlStringifier\InsertStringifier($query, $this);
-    }
-
-    /**
-     * @param Sql\UpdateQuery $query
-     *
-     * @return QueryStringifiers\UpdateStringifier
-     */
-    public function createUpdateStringifier(Sql\UpdateQuery $query): QueryStringifiers\UpdateStringifier {
-        return new SqlStringifier\UpdateStringifier($query, $this);
-    }
-
-    /**
-     * @param Sql\DeleteQuery $query
-     *
-     * @return QueryStringifiers\DeleteStringifier
-     */
-    public function createDeleteStringifier(Sql\DeleteQuery $query): QueryStringifiers\DeleteStringifier {
-        return new SqlStringifier\DeleteStringifier($query, $this);
+    public function sqlStringifiersFactory(): ?\VV\Db\Sql\Stringifiers\Factory {
+        return null;
     }
 
     /**
@@ -94,17 +66,10 @@ class Driver implements \VV\Db\Driver\Driver {
      *
      * @return $this
      */
-    public function setSessionParams(array $sessionParams): self {
+    public function setSessionParams(array $sessionParams): static {
         $this->sessionParams = $sessionParams;
 
         return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function dbmsName(): string {
-        return DriverAlias::DBMS_ORACLE;
     }
 
     public static function ociParse($connection, $sqlText) {
@@ -128,7 +93,7 @@ class Driver implements \VV\Db\Driver\Driver {
      *
      * @return OciError|null
      */
-    public static function ociError($handle = null) {
+    public static function ociError($handle = null): ?OciError {
         $e = $handle ? oci_error($handle) : oci_error();
         if (!$e) return null;
 

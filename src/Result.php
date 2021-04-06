@@ -8,12 +8,12 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VV\Db\Oracle;
+namespace VV\Db\Oci;
 
 /**
  * Class Result
  *
- * @package VV\Db\Driver\Oracle
+ * @package VV\Db\Oci
  */
 class Result implements \VV\Db\Driver\Result {
 

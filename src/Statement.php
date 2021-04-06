@@ -8,34 +8,30 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace VV\Db\Oracle;
+namespace VV\Db\Oci;
 
+use JetBrains\PhpStorm\Pure;
 use VV\Db\Param;
 
 /**
  * Class Statement
  *
- * @package VV\Db\Driver\Oracle
+ * @package VV\Db\Oci
  */
 class Statement implements \VV\Db\Driver\Statement {
 
-    /** @var mixed */
-    private $stmt;
-
-    /** @var mixed */
-    private $ociConn;
-
+    private mixed $stmt;
+    private mixed $ociConn;
     private ?array $lobsToUpload = [];
-
     private ?\VV\Db\Param $insertedIdParam = null;
 
     /**
      * Prepared constructor.
      *
-     * @param $stmt
-     * @param $ociConn
+     * @param mixed $stmt
+     * @param mixed $ociConn
      */
-    public function __construct($stmt, $ociConn) {
+    public function __construct(mixed $stmt, mixed $ociConn) {
         $this->stmt = $stmt;
         $this->ociConn = $ociConn;
     }
@@ -159,12 +155,13 @@ class Statement implements \VV\Db\Driver\Statement {
     }
 
     /**
-     * @param      $value
-     * @param null $paramType
+     * @param mixed    $value
+     * @param int|null $paramType
      *
      * @return int
      */
-    private function toOciTypeParamType($value, $paramType = null) {
+    #[Pure]
+    private function toOciTypeParamType(mixed $value, $paramType = null): int {
         if ($value instanceof Param) {
             $paramType = $value->type();
             $value = $value->value();

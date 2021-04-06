@@ -1,6 +1,6 @@
 {
-    "name": "phpvv/db-oracle",
-    "description": "VV DB Oracle",
+    "name": "phpvv/db-oci",
+    "description": "VV DB Driver over OCI extension",
     "type": "library",
     "license": "MIT",
     "authors": [
@@ -11,11 +11,12 @@
     ],
     "autoload": {
         "psr-4": {
-            "VV\\Db\\Oracle\\": "Oracle"
+            "VV\\Db\\Oci\\": "src"
         }
     },
     "require": {
         "php": "^8.0",
+        "ext-oci8": "*",
         "phpvv/db": "dev-master"
     },
     "require-dev": {
