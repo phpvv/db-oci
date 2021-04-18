@@ -42,7 +42,6 @@ class Statement implements \VV\Db\Driver\Statement {
     public function bind(array $params): void {
         /** @var Param[] $lobs */
         $lobs = []; // bind LOB params at the end
-        $bindParam = null;
         if ($params) {
             $i = 0;
             foreach ($params as $k => &$param) {
@@ -155,13 +154,13 @@ class Statement implements \VV\Db\Driver\Statement {
     }
 
     /**
-     * @param mixed    $value
-     * @param int|null $paramType
+     * @param mixed $value
      *
      * @return int
      */
     #[Pure]
-    private function toOciTypeParamType(mixed $value, $paramType = null): int {
+    private function toOciTypeParamType(mixed $value): int {
+        $paramType = null;
         if ($value instanceof Param) {
             $paramType = $value->type();
             $value = $value->value();

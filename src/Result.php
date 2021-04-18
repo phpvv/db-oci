@@ -17,13 +17,10 @@ namespace VV\Db\Oci;
  */
 class Result implements \VV\Db\Driver\Result {
 
-    /** @var mixed */
-    private $stmt;
+    private mixed $stmt;
+    private int|string|null $insertedId;
 
-    /** @var mixed */
-    private $insertedId;
-
-    public function __construct($stmt, $insertedId) {
+    public function __construct(mixed $stmt, int|string|null $insertedId) {
         $this->stmt = $stmt;
         $this->insertedId = $insertedId;
     }
@@ -47,7 +44,7 @@ class Result implements \VV\Db\Driver\Result {
         }
     }
 
-    public function insertedId() {
+    public function insertedId(): int|string|null {
         return $this->insertedId;
     }
 

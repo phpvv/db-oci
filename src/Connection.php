@@ -22,7 +22,7 @@ class Connection implements \VV\Db\Driver\Connection {
     /**
      * Connection constructor.
      *
-     * @param $ociConn
+     * @param mixed $ociConn
      */
     public function __construct(mixed $ociConn) {
         $this->ociConn = $ociConn;
