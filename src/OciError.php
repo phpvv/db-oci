@@ -15,6 +15,7 @@ namespace VV\Db\Oci;
  *
  * @package VV\Db\Oci
  */
-class OciError extends \RuntimeException {
+class OciError extends \RuntimeException
+{
     use \VV\Exception\Core;
 }

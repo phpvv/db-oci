@@ -10,7 +10,6 @@
  */
 namespace VV\Db\Oci;
 
-use JetBrains\PhpStorm\Pure;
 use VV\Db\Param;
 
 /**
@@ -18,7 +17,8 @@ use VV\Db\Param;
  *
  * @package VV\Db\Oci
  */
-class Statement implements \VV\Db\Driver\Statement {
+class Statement implements \VV\Db\Driver\Statement
+{
 
     private mixed $stmt;
     private mixed $ociConn;
@@ -31,7 +31,8 @@ class Statement implements \VV\Db\Driver\Statement {
      * @param mixed $stmt
      * @param mixed $ociConn
      */
-    public function __construct(mixed $stmt, mixed $ociConn) {
+    public function __construct(mixed $stmt, mixed $ociConn)
+    {
         $this->stmt = $stmt;
         $this->ociConn = $ociConn;
     }
@@ -39,7 +40,8 @@ class Statement implements \VV\Db\Driver\Statement {
     /**
      * @inheritdoc
      */
-    public function bind(array $params): void {
+    public function bind(array $params): void
+    {
         /** @var Param[] $lobs */
         $lobs = []; // bind LOB params at the end
         if ($params) {
@@ -51,14 +53,14 @@ class Statement implements \VV\Db\Driver\Statement {
 
                 if (is_string($k)) {
                     $name = ":$k";
-                } elseif ($param instanceof Param && ($n = $param->name())) {
+                } elseif ($param instanceof Param && ($n = $param->getName())) {
                     $name = ":$n";
                 } else {
                     $name = ':p' . (++$i);
                 }
 
                 if ($param instanceof Param) {
-                    switch ($param->type()) {
+                    switch ($param->getType()) {
                         // LOBs to end
                         case Param::T_TEXT:
                         case Param::T_BLOB:
@@ -67,9 +69,9 @@ class Statement implements \VV\Db\Driver\Statement {
 
                         default:
                             $this->ociBindParam($name,
-                                $param->value(),
+                                $param->getValue(),
                                 $this->toOciTypeParamType($param),
-                                $param->size() ?: -1
+                                $param->getSize() ?: -1
                             );
                     }
                     $param->setBinded();
@@ -84,7 +86,9 @@ class Statement implements \VV\Db\Driver\Statement {
         $this->lobsToUpload = [];
         foreach ($lobs as $name => $param) {
             $lobDescr = oci_new_descriptor($this->ociConn, OCI_D_LOB);
-            if ($param->isForUpload()) $this->lobsToUpload[] = [$lobDescr, $param];
+            if ($param->isForUpload()) {
+                $this->lobsToUpload[] = [$lobDescr, $param];
+            }
 
             $this->ociBindParam($name, $lobDescr, $this->toOciTypeParamType($param));
         }
@@ -93,7 +97,8 @@ class Statement implements \VV\Db\Driver\Statement {
     /**
      * @inheritdoc
      */
-    public function exec(): \VV\Db\Driver\Result {
+    public function exec(): \VV\Db\Driver\Result
+    {
         // execute query
         Driver::ociExecute($this->stmt);
 
@@ -101,7 +106,9 @@ class Statement implements \VV\Db\Driver\Statement {
         /** @var \OCI_Lob $lobDescr */
         /** @var Param $param */
         foreach ($this->lobsToUpload as [$lobDescr, $param]) {
-            if (!$value = $param->value()) continue;
+            if (!$value = $param->getValue()) {
+                continue;
+            }
 
             $lobDescr->rewind();
             foreach ($value as $block) {
@@ -109,7 +116,7 @@ class Statement implements \VV\Db\Driver\Statement {
             }
         }
 
-        $insertedId = $this->insertedIdParam ? $this->insertedIdParam->value() : null;
+        $insertedId = $this->insertedIdParam ? $this->insertedIdParam->getValue() : null;
 
         return new Result($this->stmt, $insertedId);
     }
@@ -117,14 +124,16 @@ class Statement implements \VV\Db\Driver\Statement {
     /**
      * @inheritdoc
      */
-    public function setFetchSize(int $size): void {
+    public function setFetchSize(int $size): void
+    {
         oci_set_prefetch($this->stmt, $size);
     }
 
     /**
      * @inheritdoc
      */
-    public function close(): void {
+    public function close(): void
+    {
         oci_free_statement($this->stmt);
         $this->stmt = null;
 
@@ -141,7 +150,8 @@ class Statement implements \VV\Db\Driver\Statement {
      * @param     $type
      * @param int $size
      */
-    private function ociBindParam($name, &$value, $type, $size = -1) {
+    private function ociBindParam($name, &$value, $type, $size = -1)
+    {
         $ob = oci_bind_by_name($this->stmt, $name, $value, $size, $type);
 
         if (!$ob) {
@@ -158,12 +168,11 @@ class Statement implements \VV\Db\Driver\Statement {
      *
      * @return int
      */
-    #[Pure]
     private function toOciTypeParamType(mixed $value): int {
         $paramType = null;
         if ($value instanceof Param) {
-            $paramType = $value->type();
-            $value = $value->value();
+            $paramType = $value->getType();
+            $value = $value->getValue();
         }
 
         if ($paramType)
@@ -181,7 +190,9 @@ class Statement implements \VV\Db\Driver\Statement {
                     return SQLT_BIN;
             }
 
-        if (is_int($value)) return SQLT_INT;
+        if (is_int($value)) {
+            return SQLT_INT;
+        }
 
         return SQLT_CHR;
     }

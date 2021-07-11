@@ -17,7 +17,8 @@ use VV\Db\Exceptions\ConnectionError;
  *
  * @package VV\Db\Oci
  */
-class Driver implements \VV\Db\Driver\Driver {
+class Driver implements \VV\Db\Driver\Driver
+{
 
     private array $sessionParams = [
         'nls_numeric_characters' => '\'. \'',
@@ -25,10 +26,12 @@ class Driver implements \VV\Db\Driver\Driver {
         'nls_comp' => 'linguistic',
     ];
 
-    public function connect(string $host, string $user, string $passwd, ?string $scheme, ?string $charset): Connection {
-
+    public function connect(string $host, string $user, string $passwd, ?string $scheme, ?string $charset): Connection
+    {
         $conn = @oci_new_connect($u = $user, $passwd, $host, $charset ?: '');
-        if (!$conn) throw new ConnectionError(null, null, $this->ociError());
+        if (!$conn) {
+            throw new ConnectionError(null, null, $this->ociError());
+        }
 
         $sessionParams = $this->sessionParams + [
                 'nls_date_format' => '\'YYYY-MM-DD HH24:MI:SS\'',
@@ -45,7 +48,9 @@ class Driver implements \VV\Db\Driver\Driver {
             self::ociExecute($stmt);
         }
         $res = oci_commit($conn);
-        if (!$res) throw new ConnectionError('Can\'t commit session settings');
+        if (!$res) {
+            throw new ConnectionError('Can\'t commit session settings');
+        }
 
         return new Connection($conn);
     }
@@ -53,11 +58,13 @@ class Driver implements \VV\Db\Driver\Driver {
     /**
      * @return string
      */
-    public function dbms(): string {
+    public function getDbmsName(): string
+    {
         return self::DBMS_ORACLE;
     }
 
-    public function sqlStringifiersFactory(): ?\VV\Db\Sql\Stringifiers\Factory {
+    public function getSqlStringifiersFactory(): ?\VV\Db\Sql\Stringifiers\Factory
+    {
         return null;
     }
 
@@ -66,13 +73,15 @@ class Driver implements \VV\Db\Driver\Driver {
      *
      * @return $this
      */
-    public function setSessionParams(array $sessionParams): static {
+    public function setSessionParams(array $sessionParams): static
+    {
         $this->sessionParams = $sessionParams;
 
         return $this;
     }
 
-    public static function ociParse($connection, $sqlText) {
+    public static function ociParse($connection, $sqlText)
+    {
         $h = @oci_parse($connection, $sqlText);
         if (!$h) {
             throw new \VV\Db\Exceptions\SqlSyntaxError(null, null, self::ociError($connection));
@@ -81,7 +90,8 @@ class Driver implements \VV\Db\Driver\Driver {
         return $h;
     }
 
-    public static function ociExecute($stmt) {
+    public static function ociExecute($stmt)
+    {
         $h = @oci_execute($stmt, OCI_NO_AUTO_COMMIT);
         if (!$h) {
             throw new \VV\Db\Exceptions\SqlExecutionError(null, null, self::ociError($stmt));
@@ -93,9 +103,12 @@ class Driver implements \VV\Db\Driver\Driver {
      *
      * @return OciError|null
      */
-    public static function ociError($handle = null): ?OciError {
+    public static function ociError($handle = null): ?OciError
+    {
         $e = $handle ? oci_error($handle) : oci_error();
-        if (!$e) return null;
+        if (!$e) {
+            return null;
+        }
 
         $message = $e['message'];
         $code = $e['code'];
