@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 
 /*
  * This file is part of the VV package.
@@ -8,14 +8,20 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+declare(strict_types=1);
+
 namespace VV\Db\Oci;
+
+use VV\Db;
+use VV\Db\Driver\Result as ResultInterface;
 
 /**
  * Class Result
  *
  * @package VV\Db\Oci
  */
-class Result implements \VV\Db\Driver\Result
+class Result implements ResultInterface
 {
     private mixed $stmt;
     private int|string|null $insertedId;
@@ -30,18 +36,18 @@ class Result implements \VV\Db\Driver\Result
     {
         $ociFlags = OCI_RETURN_NULLS;
 
-        if ($fassoc = (bool)($flags & \VV\Db::FETCH_ASSOC)) {
+        if ($fetchAssoc = (bool)($flags & Db::FETCH_ASSOC)) {
             $ociFlags |= OCI_ASSOC;
         }
-        if ($flags & \VV\Db::FETCH_NUM) {
+        if ($flags & Db::FETCH_NUM) {
             $ociFlags |= OCI_NUM;
         }
-        if (!($flags & \VV\Db::FETCH_LOB_NOT_LOAD)) {
+        if (!($flags & Db::FETCH_LOB_NOT_LOAD)) {
             $ociFlags |= OCI_RETURN_LOBS;
         }
 
         while ($row = oci_fetch_array($this->stmt, $ociFlags)) {
-            if ($fassoc) {
+            if ($fetchAssoc) {
                 $row = array_change_key_case($row, CASE_LOWER);
             }
             yield $row;

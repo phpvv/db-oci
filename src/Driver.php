@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 
 /*
  * This file is part of the VV package.
@@ -8,9 +8,15 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+declare(strict_types=1);
+
 namespace VV\Db\Oci;
 
 use VV\Db\Exceptions\ConnectionError;
+use VV\Db\Exceptions\SqlExecutionError;
+use VV\Db\Exceptions\SqlSyntaxError;
+use VV\Db\Sql\Stringifiers\Factory as StringifiersFactory;
 
 /**
  * Class Driver
@@ -63,7 +69,7 @@ class Driver implements \VV\Db\Driver\Driver
         return self::DBMS_ORACLE;
     }
 
-    public function getSqlStringifiersFactory(): ?\VV\Db\Sql\Stringifiers\Factory
+    public function getSqlStringifiersFactory(): ?StringifiersFactory
     {
         return null;
     }
@@ -84,7 +90,7 @@ class Driver implements \VV\Db\Driver\Driver
     {
         $h = @oci_parse($connection, $sqlText);
         if (!$h) {
-            throw new \VV\Db\Exceptions\SqlSyntaxError(null, null, self::ociError($connection));
+            throw new SqlSyntaxError(previous: self::ociError($connection));
         }
 
         return $h;
@@ -94,7 +100,7 @@ class Driver implements \VV\Db\Driver\Driver
     {
         $h = @oci_execute($stmt, OCI_NO_AUTO_COMMIT);
         if (!$h) {
-            throw new \VV\Db\Exceptions\SqlExecutionError(null, null, self::ociError($stmt));
+            throw new SqlExecutionError(previous: self::ociError($stmt));
         }
     }
 

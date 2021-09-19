@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 
 /*
  * This file is part of the VV package.
@@ -8,6 +8,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+declare(strict_types=1);
+
 namespace VV\Db\Oci;
 
 use VV\Db\Param;
@@ -23,7 +26,7 @@ class Statement implements \VV\Db\Driver\Statement
     private mixed $stmt;
     private mixed $ociConn;
     private ?array $lobsToUpload = [];
-    private ?\VV\Db\Param $insertedIdParam = null;
+    private ?Param $insertedIdParam = null;
 
     /**
      * Prepared constructor.
@@ -47,7 +50,7 @@ class Statement implements \VV\Db\Driver\Statement
         if ($params) {
             $i = 0;
             foreach ($params as $k => &$param) {
-                if ($param instanceof \VV\Db\Param && $param->isForInsertedId()) {
+                if ($param instanceof Param && $param->isForInsertedId()) {
                     $this->insertedIdParam = $param;
                 }
 
@@ -68,15 +71,16 @@ class Statement implements \VV\Db\Driver\Statement
                             break;
 
                         default:
-                            $this->ociBindParam($name,
+                            $this->ociBindParam(
+                                $name,
                                 $param->getValue(),
-                                $this->toOciTypeParamType($param),
+                                $this->toOciType($param),
                                 $param->getSize() ?: -1
                             );
                     }
-                    $param->setBinded();
+                    $param->setBound();
                 } else {
-                    $this->ociBindParam($name, $param, $this->toOciTypeParamType($param));
+                    $this->ociBindParam($name, $param, $this->toOciType($param));
                 }
             }
             unset($param);
@@ -85,12 +89,12 @@ class Statement implements \VV\Db\Driver\Statement
         // bind deferred LOB params
         $this->lobsToUpload = [];
         foreach ($lobs as $name => $param) {
-            $lobDescr = oci_new_descriptor($this->ociConn, OCI_D_LOB);
+            $lobDescriptor = oci_new_descriptor($this->ociConn, OCI_D_LOB);
             if ($param->isForUpload()) {
-                $this->lobsToUpload[] = [$lobDescr, $param];
+                $this->lobsToUpload[] = [$lobDescriptor, $param];
             }
 
-            $this->ociBindParam($name, $lobDescr, $this->toOciTypeParamType($param));
+            $this->ociBindParam($name, $lobDescriptor, $this->toOciType($param));
         }
     }
 
@@ -103,20 +107,20 @@ class Statement implements \VV\Db\Driver\Statement
         Driver::ociExecute($this->stmt);
 
         // upload LOBs
-        /** @var \OCI_Lob $lobDescr */
+        /** @var \OCI_Lob $lobDescriptor */
         /** @var Param $param */
-        foreach ($this->lobsToUpload as [$lobDescr, $param]) {
+        foreach ($this->lobsToUpload as [$lobDescriptor, $param]) {
             if (!$value = $param->getValue()) {
                 continue;
             }
 
-            $lobDescr->rewind();
+            $lobDescriptor->rewind();
             foreach ($value as $block) {
-                $lobDescr->write($block);
+                $lobDescriptor->write($block);
             }
         }
 
-        $insertedId = $this->insertedIdParam ? $this->insertedIdParam->getValue() : null;
+        $insertedId = $this->insertedIdParam?->getValue();
 
         return new Result($this->stmt, $insertedId);
     }
@@ -137,9 +141,9 @@ class Statement implements \VV\Db\Driver\Statement
         oci_free_statement($this->stmt);
         $this->stmt = null;
 
-        foreach ($this->lobsToUpload as [$lobDescr]) {
-            /** @var \OCI_Lob $lobDescr */
-            $lobDescr->close();
+        foreach ($this->lobsToUpload as [$lobDescriptor]) {
+            /** @var \OCI_Lob $lobDescriptor */
+            $lobDescriptor->close();
         }
         $this->lobsToUpload = [];
     }
@@ -150,13 +154,15 @@ class Statement implements \VV\Db\Driver\Statement
      * @param     $type
      * @param int $size
      */
-    private function ociBindParam($name, &$value, $type, $size = -1)
+    private function ociBindParam($name, &$value, $type, int $size = -1)
     {
         $ob = oci_bind_by_name($this->stmt, $name, $value, $size, $type);
 
         if (!$ob) {
+            $strValue = is_scalar($value) ? (string)$value : '(' . gettype($value) . ')';
+
             throw new \RuntimeException(
-                'Bind params error: ' . $name . ' ' . $value,
+                'Bind params error: ' . $name . ' ' . $strValue,
                 null,
                 Driver::ociError($this->stmt)
             );
@@ -168,27 +174,30 @@ class Statement implements \VV\Db\Driver\Statement
      *
      * @return int
      */
-    private function toOciTypeParamType(mixed $value): int {
+    private function toOciType(mixed $value): int
+    {
         $paramType = null;
         if ($value instanceof Param) {
             $paramType = $value->getType();
             $value = $value->getValue();
         }
 
-        if ($paramType)
-            switch ($paramType) {
-                case Param::T_INT:
-                    return SQLT_INT;
+        if ($paramType) {
+            return match ($paramType) {
+                Param::T_INT => SQLT_INT,
+                Param::T_BOOL => SQLT_BOL,
+                Param::T_FLOAT,
+                Param::T_STR => SQLT_CHR,
+                Param::T_TEXT => SQLT_CLOB,
+                Param::T_BLOB => SQLT_BLOB,
+                Param::T_BIN => SQLT_BIN,
+                default => throw new \LogicException('Not supported yet'),
+            };
+        }
 
-                case Param::T_TEXT:
-                    return SQLT_CLOB;
-
-                case Param::T_BLOB:
-                    return SQLT_BLOB;
-
-                case Param::T_BIN:
-                    return SQLT_BIN;
-            }
+        if (is_bool($value)) {
+            return SQLT_BOL;
+        }
 
         if (is_int($value)) {
             return SQLT_INT;
