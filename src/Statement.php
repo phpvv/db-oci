@@ -190,7 +190,7 @@ class Statement implements \VV\Db\Driver\Statement
                 Param::T_STR => SQLT_CHR,
                 Param::T_TEXT => SQLT_CLOB,
                 Param::T_BLOB => SQLT_BLOB,
-                Param::T_BIN => SQLT_BIN,
+                Param::T_BIN_STR => SQLT_BIN,
                 default => throw new \LogicException('Not supported yet'),
             };
         }
