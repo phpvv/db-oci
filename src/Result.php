@@ -42,7 +42,7 @@ class Result implements ResultInterface
         if ($flags & Db::FETCH_NUM) {
             $ociFlags |= OCI_NUM;
         }
-        if (!($flags & Db::FETCH_LOB_NOT_LOAD)) {
+        if (!($flags & Db::FETCH_LOB_OBJECT)) {
             $ociFlags |= OCI_RETURN_LOBS;
         }
 
