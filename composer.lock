@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "105f268e676754a0d9750151a9a611e1",
+    "content-hash": "04223e2d10171669bd4d10ae2c3f5329",
     "packages": [
         {
             "name": "phpvv/db",
-            "version": "0.3.0-beta.7",
+            "version": "0.3.0-rc.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpvv/db.git",
-                "reference": "3ff0893dec1cf39f15fec5c6b0a3ad8645267116"
+                "reference": "0da13c2e00e7d31ce97beddec93aadfbb8ce5730"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpvv/db/zipball/3ff0893dec1cf39f15fec5c6b0a3ad8645267116",
-                "reference": "3ff0893dec1cf39f15fec5c6b0a3ad8645267116",
+                "url": "https://api.github.com/repos/phpvv/db/zipball/0da13c2e00e7d31ce97beddec93aadfbb8ce5730",
+                "reference": "0da13c2e00e7d31ce97beddec93aadfbb8ce5730",
                 "shasum": ""
             },
             "require": {
@@ -63,9 +63,9 @@
             ],
             "support": {
                 "issues": "https://github.com/phpvv/db/issues",
-                "source": "https://github.com/phpvv/db/tree/0.3.0-beta.7"
+                "source": "https://github.com/phpvv/db/tree/0.3.0-rc.1"
             },
-            "time": "2021-09-19T12:11:16+00:00"
+            "time": "2021-09-30T21:59:52+00:00"
         }
     ],
     "packages-dev": [
@@ -129,7 +129,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "phpvv/db": 10
+        "phpvv/db": 5
     },
     "prefer-stable": false,
     "prefer-lowest": false,

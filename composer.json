@@ -17,7 +17,7 @@
     "require": {
         "php": "^8.0",
         "ext-oci8": "*",
-        "phpvv/db": ">= 0.3.0-beta.7@beta"
+        "phpvv/db": ">= 0.3.0-rc.1@rc"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "^3.6"
